@@ -1,0 +1,2264 @@
+---
+title: "DPA_Project"
+author: "Shriya, Girish, Ranjan, Raghukarn"
+date: "2023-03-23"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+#remove.packages('vctrs')
+#install.packages('rlang')
+#install.packages('vctrs')
+```
+
+#Precipatation df1
+```{r}
+
+Precipitation_124 <- read.table('precipitation_from_weather_station_124.txt', header = TRUE, sep = ",")
+Precipitation_124 <- subset(Precipitation_124, select = -c(Date_time))
+
+head(Precipitation_124)
+summary(Precipitation_124)
+
+#check if NA's Exist
+list_na <- colnames(Precipitation_124)[ apply(Precipitation_124, 2, anyNA) ]
+list_na
+
+```
+#Precipatation df2
+```{r}
+
+Precipitation_124b <- read.table('precipitation_from_weather_station_124b.txt', header = TRUE, sep = ",")
+Precipitation_124b <- subset(Precipitation_124b, select = -c(Date_time,X))
+
+head(Precipitation_124b)
+summary(Precipitation_124b)
+
+#check if NA's Exist
+list_na <- colnames(Precipitation_124b)[ apply(Precipitation_124b, 2, anyNA) ]
+list_na
+```
+#Precipatation df3
+```{r}
+Precipitation_125 <- read.table('precipitation_from_weather_station_125.txt', header = TRUE, sep = ",")
+Precipitation_125 <- subset(Precipitation_125, select = -c(Date_time))
+
+head(Precipitation_125)
+summary(Precipitation_125)
+
+#check if NA's Exist
+list_na <- colnames(Precipitation_125)[ apply(Precipitation_125, 2, anyNA) ]
+list_na
+
+```
+
+
+
+Precipatation mearged for all 3 df
+```{r}
+library(dplyr)
+#Merge all 3 precipitation datasets
+Precipitation_merged<-bind_rows(Precipitation_124, Precipitation_124b, Precipitation_125) %>%
+          group_by(WY,Year,Month,Day,Hour,Minute) %>%   
+          summarise_each(funs(mean))
+head(Precipitation_merged)
+summary(Precipitation_merged)
+
+```
+
+```{r}
+#install.packages("writexl")
+library("writexl")
+write_xlsx(Precipitation_merged,"Precipitation_merged.xlsx")
+
+```
+
+#Weather df1
+```{r}
+weather_data_124 <- read.table('weather_data_124.txt', header = TRUE, sep = ",")
+weather_data_124 <- subset(weather_data_124, select = -c(Date_time))
+
+head(weather_data_124)
+summary(weather_data_124)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_124)[ apply(weather_data_124, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_124==-9999)
+
+```
+#Weather df2
+```{r}
+weather_data_124b <- read.table('weather_data_124b.txt', header = TRUE, sep = ",")
+weather_data_124b <- subset(weather_data_124b, select = -c(Date_time))
+
+head(weather_data_124b)
+summary(weather_data_124b)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_124b)[ apply(weather_data_124b, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_124b==-9999)
+
+```
+#Weather df3
+```{r}
+weather_data_125 <- read.table('weather_data_125.txt', header = TRUE, sep = ",")
+weather_data_125 <- subset(weather_data_125, select = -c(Date_time))
+
+head(weather_data_125)
+summary(weather_data_125)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_125)[apply(weather_data_125, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_125==-9999)
+
+```
+#Weather df4
+```{r}
+library(ggplot2)
+library(ggpubr)
+weather_data_jdt1 <- read.table('weather_data_jdt1.txt', header = TRUE, sep = ",")
+weather_data_jdt1 <- subset(weather_data_jdt1, select = -c(Date_time))
+
+head(weather_data_jdt1)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt1)[ apply(weather_data_jdt1, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt1==-9999)
+# replace -9999 with Na's
+weather_data_jdt1 <- na_if(weather_data_jdt1, -9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt1)[ apply(weather_data_jdt1, 2, anyNA) ]
+list_na
+
+#Density plot to see distribution of data within the feature visulization
+T_a <- ggplot(weather_data_jdt1, aes(x=T_a)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+RH <- ggplot(weather_data_jdt1, aes(x=RH)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+e_a <- ggplot(weather_data_jdt1, aes(x=e_a)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_d <- ggplot(weather_data_jdt1, aes(x=T_d)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(T_a,RH,e_a,T_d, ncol=2, nrow=2)
+
+summary(weather_data_jdt1)
+
+```
+
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt1$T_a[is.na(weather_data_jdt1$T_a)]<-median(weather_data_jdt1$T_a, na.rm=TRUE)
+
+weather_data_jdt1$RH[is.na(weather_data_jdt1$RH)]<-median(weather_data_jdt1$RH, na.rm=TRUE)
+
+weather_data_jdt1$e_a[is.na(weather_data_jdt1$e_a)]<-median(weather_data_jdt1$e_a, na.rm=TRUE)
+
+weather_data_jdt1$T_d[is.na(weather_data_jdt1$T_d)]<-mean(weather_data_jdt1$T_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt1)[ apply(weather_data_jdt1, 2, anyNA) ]
+list_na
+```
+
+```{r}
+#install.packages("ggpubr")
+#install.packages("rlang")
+#remove.packages("rlang")
+#remove.packages("vtcrs")
+```
+
+#Weather df5
+
+```{r}
+weather_data_jdt2 <- read.table('weather_data_jdt2.txt', header = TRUE, sep = ",")
+weather_data_jdt2 <- subset(weather_data_jdt2, select = -c(Date_time))
+
+head(weather_data_jdt2)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2)[ apply(weather_data_jdt2, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt2==-9999)
+# replace -9999 with Na's
+weather_data_jdt2 <- na_if(weather_data_jdt2, -9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2)[ apply(weather_data_jdt2, 2, anyNA) ]
+list_na
+
+summary(weather_data_jdt2)
+
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt2$T_a[is.na(weather_data_jdt2$T_a)]<-median(weather_data_jdt2$T_a, na.rm=TRUE)
+
+weather_data_jdt2$RH[is.na(weather_data_jdt2$RH)]<-median(weather_data_jdt2$RH, na.rm=TRUE)
+
+weather_data_jdt2$e_a[is.na(weather_data_jdt2$e_a)]<-median(weather_data_jdt2$e_a, na.rm=TRUE)
+
+weather_data_jdt2$T_d[is.na(weather_data_jdt2$T_d)]<-mean(weather_data_jdt2$T_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2)[ apply(weather_data_jdt2, 2, anyNA) ]
+list_na
+```
+
+#Weather df6
+```{r}
+weather_data_jdt2b <- read.table('weather_data_jdt2b.txt', header = TRUE, sep = ",")
+weather_data_jdt2b <- subset(weather_data_jdt2b, select = -c(Date_time))
+
+head(weather_data_jdt2b)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2b)[ apply(weather_data_jdt2b, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt2b==-9999)
+# replace -9999 with Na's
+weather_data_jdt2b <- na_if(weather_data_jdt2b, -9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2b)[ apply(weather_data_jdt2b, 2, anyNA) ]
+list_na
+
+#Density plot to see distribution of data within the feature Visulization
+T_a <- ggplot(weather_data_jdt2b, aes(x=T_a)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+RH <- ggplot(weather_data_jdt2b, aes(x=RH)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+e_a <- ggplot(weather_data_jdt2b, aes(x=e_a)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_d <- ggplot(weather_data_jdt2b, aes(x=T_d)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+w_s <- ggplot(weather_data_jdt2b, aes(x=w_s)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+w_d <- ggplot(weather_data_jdt2b, aes(x=w_d)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(T_a,RH,e_a,T_d,w_s,w_d, ncol=2, nrow=2)
+summary(weather_data_jdt2b)
+```
+
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt2b$T_a[is.na(weather_data_jdt2b$T_a)]<-median(weather_data_jdt2b$T_a, na.rm=TRUE)
+
+weather_data_jdt2b$RH[is.na(weather_data_jdt2b$RH)]<-median(weather_data_jdt2b$RH, na.rm=TRUE)
+
+weather_data_jdt2b$e_a[is.na(weather_data_jdt2b$e_a)]<-median(weather_data_jdt2b$e_a, na.rm=TRUE)
+
+weather_data_jdt2b$T_d[is.na(weather_data_jdt2b$T_d)]<-mean(weather_data_jdt2b$T_d, na.rm=TRUE)
+
+weather_data_jdt2b$w_s[is.na(weather_data_jdt2b$w_s)]<-median(weather_data_jdt2b$w_s, na.rm=TRUE)
+
+weather_data_jdt2b$w_d[is.na(weather_data_jdt2b$w_d)]<-median(weather_data_jdt2b$w_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt2b)[ apply(weather_data_jdt2b, 2, anyNA) ]
+list_na
+```
+
+#Weather df7
+```{r}
+weather_data_jdt3 <- read.table('weather_data_jdt3.txt', header = TRUE, sep = ",")
+weather_data_jdt3 <- subset(weather_data_jdt3, select = -c(Date_time))
+
+head(weather_data_jdt3)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3)[ apply(weather_data_jdt3, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt3==-9999)
+# replace -9999 with Na's
+weather_data_jdt3 <- na_if(weather_data_jdt3, -9999)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3)[ apply(weather_data_jdt3, 2, anyNA) ]
+list_na
+
+summary(weather_data_jdt3)
+
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt3$T_a[is.na(weather_data_jdt3$T_a)]<-median(weather_data_jdt3$T_a, na.rm=TRUE)
+
+weather_data_jdt3$RH[is.na(weather_data_jdt3$RH)]<-median(weather_data_jdt3$RH, na.rm=TRUE)
+
+weather_data_jdt3$e_a[is.na(weather_data_jdt3$e_a)]<-median(weather_data_jdt3$e_a, na.rm=TRUE)
+
+weather_data_jdt3$T_d[is.na(weather_data_jdt3$T_d)]<-mean(weather_data_jdt3$T_d, na.rm=TRUE)
+
+weather_data_jdt3$w_s[is.na(weather_data_jdt3$w_s)]<-median(weather_data_jdt3$w_s, na.rm=TRUE)
+
+weather_data_jdt3$w_d[is.na(weather_data_jdt3$w_d)]<-median(weather_data_jdt3$w_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3)[ apply(weather_data_jdt3, 2, anyNA) ]
+list_na
+```
+
+#Weather df8
+```{r}
+weather_data_jdt3b <- read.table('weather_data_jdt3b.txt', header = TRUE, sep = ",")
+weather_data_jdt3b <- subset(weather_data_jdt3b, select = -c(Date_time))
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3b)[ apply(weather_data_jdt3b, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt3b==-9999)
+# replace -9999 with Na's
+weather_data_jdt3b <- na_if(weather_data_jdt3b, -9999)
+any(weather_data_jdt3b==-9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3b)[ apply(weather_data_jdt3b, 2, anyNA) ]
+list_na
+summary(weather_data_jdt3b)
+
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt3b$T_a[is.na(weather_data_jdt3b$T_a)]<-median(weather_data_jdt3b$T_a, na.rm=TRUE)
+
+weather_data_jdt3b$RH[is.na(weather_data_jdt3b$RH)]<-median(weather_data_jdt3b$RH, na.rm=TRUE)
+
+weather_data_jdt3b$e_a[is.na(weather_data_jdt3b$e_a)]<-median(weather_data_jdt3b$e_a, na.rm=TRUE)
+
+weather_data_jdt3b$T_d[is.na(weather_data_jdt3b$T_d)]<-mean(weather_data_jdt3b$T_d, na.rm=TRUE)
+
+weather_data_jdt3b$w_s[is.na(weather_data_jdt3b$w_s)]<-median(weather_data_jdt3b$w_s, na.rm=TRUE)
+
+weather_data_jdt3b$w_d[is.na(weather_data_jdt3b$w_d)]<-median(weather_data_jdt3b$w_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt3b)[ apply(weather_data_jdt3b, 2, anyNA) ]
+list_na
+```
+
+#Weather df9
+```{r}
+weather_data_jdt4 <- read.table('weather_data_jdt4.txt', header = TRUE, sep = ",")
+weather_data_jdt4 <- subset(weather_data_jdt4, select = -c(Date_time))
+
+head(weather_data_jdt4)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4)[ apply(weather_data_jdt4, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt4==-9999)
+# replace -9999 with Na's
+weather_data_jdt4 <- na_if(weather_data_jdt4, -9999)
+any(weather_data_jdt4==-9999)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4)[ apply(weather_data_jdt4, 2, anyNA) ]
+list_na
+summary(weather_data_jdt4)
+
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt4$T_a[is.na(weather_data_jdt4$T_a)]<-median(weather_data_jdt4$T_a, na.rm=TRUE)
+
+weather_data_jdt4$RH[is.na(weather_data_jdt4$RH)]<-median(weather_data_jdt4$RH, na.rm=TRUE)
+
+weather_data_jdt4$e_a[is.na(weather_data_jdt4$e_a)]<-median(weather_data_jdt4$e_a, na.rm=TRUE)
+
+weather_data_jdt4$T_d[is.na(weather_data_jdt4$T_d)]<-mean(weather_data_jdt4$T_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4)[ apply(weather_data_jdt4, 2, anyNA) ]
+list_na
+```
+
+#Weather df10
+```{r}
+weather_data_jdt4b <- read.table('weather_data_jdt4b.txt', header = TRUE, sep = ",")
+weather_data_jdt4b <- subset(weather_data_jdt4b, select = -c(Date_time))
+
+head(weather_data_jdt4b)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4b)[ apply(weather_data_jdt4b, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt4b==-9999)
+# replace -9999 with Na's
+weather_data_jdt4b <- na_if(weather_data_jdt4b, -9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4b)[ apply(weather_data_jdt4b, 2, anyNA) ]
+list_na
+
+summary(weather_data_jdt4b)
+
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt4b$T_a[is.na(weather_data_jdt4b$T_a)]<-median(weather_data_jdt4b$T_a, na.rm=TRUE)
+
+weather_data_jdt4b$RH[is.na(weather_data_jdt4b$RH)]<-median(weather_data_jdt4b$RH, na.rm=TRUE)
+
+weather_data_jdt4b$e_a[is.na(weather_data_jdt4b$e_a)]<-median(weather_data_jdt4b$e_a, na.rm=TRUE)
+
+weather_data_jdt4b$T_d[is.na(weather_data_jdt4b$T_d)]<-mean(weather_data_jdt4b$T_d, na.rm=TRUE)
+
+weather_data_jdt4b$w_s[is.na(weather_data_jdt4b$w_s)]<-median(weather_data_jdt4b$w_s, na.rm=TRUE)
+
+weather_data_jdt4b$w_d[is.na(weather_data_jdt4b$w_d)]<-median(weather_data_jdt4b$w_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt4b)[ apply(weather_data_jdt4b, 2, anyNA) ]
+list_na
+```
+#Weather df11
+```{r}
+weather_data_jdt5 <- read.table('weather_data_jdt5.txt', header = TRUE, sep = ",")
+weather_data_jdt5 <- subset(weather_data_jdt5, select = -c(Date_time))
+
+head(weather_data_jdt5)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt5)[ apply(weather_data_jdt5, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(weather_data_jdt5==-9999)
+# replace -9999 with Na's
+weather_data_jdt5 <- na_if(weather_data_jdt5, -9999)
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt5)[ apply(weather_data_jdt5, 2, anyNA) ]
+list_na
+
+summary(weather_data_jdt5)
+```
+#Find the median of values of that column that has NA
+```{r}
+weather_data_jdt5$T_a[is.na(weather_data_jdt5$T_a)]<-median(weather_data_jdt5$T_a, na.rm=TRUE)
+
+weather_data_jdt5$RH[is.na(weather_data_jdt5$RH)]<-median(weather_data_jdt5$RH, na.rm=TRUE)
+
+weather_data_jdt5$e_a[is.na(weather_data_jdt5$e_a)]<-median(weather_data_jdt5$e_a, na.rm=TRUE)
+
+weather_data_jdt5$T_d[is.na(weather_data_jdt5$T_d)]<-mean(weather_data_jdt5$T_d, na.rm=TRUE)
+
+#check if NA's Exist
+list_na <- colnames(weather_data_jdt5)[ apply(weather_data_jdt5, 2, anyNA) ]
+list_na
+```
+#Weather mearged for all 11 df which contains all 11 stations
+
+```{r}
+library(dplyr)
+weather_data_merged<-bind_rows(weather_data_124, weather_data_124b, weather_data_125, weather_data_jdt1,weather_data_jdt2, weather_data_jdt2b, weather_data_jdt3, weather_data_jdt3b, weather_data_jdt3b, weather_data_jdt4, weather_data_jdt4b, weather_data_jdt5) %>%
+          group_by(WY,Year,Month,Day,Hour,Minute) %>%   
+          summarise_each(funs(mean))
+head(weather_data_merged)
+summary(weather_data_merged)
+
+```
+#download the weather datasets which is merged into excel for further analysis.
+```{r}
+library("writexl")
+write_xlsx(weather_data_merged,"weather_data_merged.xlsx")
+
+```
+
+
+
+#snow depth df for all 11 stations
+```{r}
+Snow_depth <- read.table('rc.tg_.dc_.jd_sc.txt', header = TRUE, sep = ",")
+Snow_depth <- subset(Snow_depth, select = -c(Date_time))
+head(Snow_depth)
+summary(Snow_depth)
+
+#check if NA's Exist
+list_na <- colnames(Snow_depth)[ apply(Snow_depth, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(Snow_depth==-9999)
+
+# replace -9999 with Na's
+Snow_depth <- na_if(Snow_depth, -9999)
+#check if NA's Exist
+list_na <- colnames(Snow_depth)[ apply(Snow_depth, 2, anyNA) ]
+list_na
+
+#Density plot to see distribution of data within the feature by Visulization
+z_s_124 <- ggplot(Snow_depth, aes(x=z_s_124)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_124b <- ggplot(Snow_depth, aes(x=z_s_124b)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_125 <- ggplot(Snow_depth, aes(x=z_s_125)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt1 <- ggplot(Snow_depth, aes(x=z_s_jdt1)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt2 <- ggplot(Snow_depth, aes(x=z_s_jdt2)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt3 <- ggplot(Snow_depth, aes(x=z_s_jdt3)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt4 <- ggplot(Snow_depth, aes(x=z_s_jdt4)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt5 <- ggplot(Snow_depth, aes(x=z_s_jdt5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt2b <- ggplot(Snow_depth, aes(x=z_s_jdt2b)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt3b <- ggplot(Snow_depth, aes(x=z_s_jdt3b)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+z_s_jdt4b <- ggplot(Snow_depth, aes(x=z_s_jdt4b)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(z_s_124,z_s_124b,z_s_125,z_s_jdt1,z_s_jdt2,z_s_jdt3,z_s_jdt4,z_s_jdt5,z_s_jdt2b,z_s_jdt3b,z_s_jdt4b, ncol=2, nrow=2)
+summary(Snow_depth)
+
+Snow_depth <- replace(Snow_depth, is.na(Snow_depth), 0)
+
+#check if NA's Exist
+list_na <- colnames(Snow_depth)[ apply(Snow_depth, 2, anyNA) ]
+list_na
+
+```
+
+```{r}
+#Merge snow depth feature for all stations into one feature
+Snow_depth$z_s <- rowMeans(Snow_depth[ , c('z_s_124','z_s_124b','z_s_125','z_s_jdt1','z_s_jdt2','z_s_jdt3','z_s_jdt4','z_s_jdt5','z_s_jdt2b','z_s_jdt3b','z_s_jdt4b')])
+
+Snow_depth <- subset(Snow_depth, select = -c(z_s_124,z_s_124b,z_s_125,z_s_jdt1,z_s_jdt2,z_s_jdt3,z_s_jdt4,z_s_jdt5,z_s_jdt2b,z_s_jdt3b,z_s_jdt4b))
+
+summary(Snow_depth)
+head(Snow_depth)
+
+```
+
+#download the SnowDepth datasets which is merged into excel for further analysis.
+```{r}
+library("writexl")
+write_xlsx(Snow_depth,"SnowDepth_merged.xlsx")
+```
+
+#Loading 9 soil data files
+```{r}
+#=========================================Reading-9-dataframes=====================================
+
+T1_Soil <- read.table('rc.tg_.dc_.jd-124ba_stm.txt', header = TRUE, sep = ",")
+T1_Soil <- subset(T1_Soil, select = -c(Date_time))
+head(T1_Soil)
+summary(T1_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T1_Soil)[ apply(T1_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T1_Soil==-9999)
+
+# replace -9999 with Na's
+T1_Soil <- na_if(T1_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T1_Soil)[ apply(T1_Soil, 2, anyNA) ]
+list_na
+
+#Density plot to see distribution of data within the feature by Visulization
+T_g_5 <- ggplot(T1_Soil, aes(x=T_g_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_20 <- ggplot(T1_Soil, aes(x=T_g_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_50 <- ggplot(T1_Soil, aes(x=T_g_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_75 <- ggplot(T1_Soil, aes(x=T_g_75)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_90 <- ggplot(T1_Soil, aes(x=T_g_90)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_5 <- ggplot(T1_Soil, aes(x=s_m_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_20 <- ggplot(T1_Soil, aes(x=s_m_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_50 <- ggplot(T1_Soil, aes(x=s_m_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_75 <- ggplot(T1_Soil, aes(x=s_m_75)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_90 <- ggplot(T1_Soil, aes(x=s_m_90)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(T_g_5,T_g_20,T_g_50,T_g_75,T_g_90,s_m_5,s_m_20,s_m_50,s_m_75,s_m_90, ncol=2, nrow=2)
+summary(T1_Soil)
+
+```
+
+```{r}
+
+T2_Soil <- read.table('rc.tg_.dc_.jd-124bs_stm.txt', header = TRUE, sep = ",")
+T2_Soil <- subset(T2_Soil, select = -c(Date_time))
+head(T2_Soil)
+summary(T2_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T2_Soil)[ apply(T2_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T2_Soil==-9999)
+
+# replace -9999 with Na's
+T2_Soil <- na_if(T2_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T2_Soil)[ apply(T2_Soil, 2, anyNA) ]
+list_na
+
+T_g_5 <- ggplot(T2_Soil, aes(x=T_g_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_20 <- ggplot(T2_Soil, aes(x=T_g_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_35 <- ggplot(T2_Soil, aes(x=T_g_35)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_50 <- ggplot(T2_Soil, aes(x=T_g_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_5 <- ggplot(T2_Soil, aes(x=s_m_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_20 <- ggplot(T2_Soil, aes(x=s_m_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_35 <- ggplot(T2_Soil, aes(x=s_m_35)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_50 <- ggplot(T2_Soil, aes(x=s_m_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(T_g_5,T_g_20,T_g_35,T_g_50,s_m_5,s_m_20,s_m_35,s_m_50, ncol=2, nrow=2)
+summary(T2_Soil)
+
+```
+
+```{r}
+T3_Soil <- read.table('rc.tg_.dc_.jd-jdt1_stm.txt', header = TRUE, sep = ",")
+T3_Soil <- subset(T3_Soil, select = -c(Date_time))
+head(T3_Soil)
+summary(T3_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T3_Soil)[ apply(T3_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T3_Soil==-9999)
+
+# replace -9999 with Na's
+T3_Soil <- na_if(T3_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T3_Soil)[ apply(T3_Soil, 2, anyNA) ]
+list_na
+
+T_g_5 <- ggplot(T3_Soil, aes(x=T_g_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_20 <- ggplot(T3_Soil, aes(x=T_g_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_50 <- ggplot(T3_Soil, aes(x=T_g_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_90 <- ggplot(T3_Soil, aes(x=T_g_90)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_130 <- ggplot(T3_Soil, aes(x=T_g_130)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+T_g_190 <- ggplot(T3_Soil, aes(x=T_g_190)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_5 <- ggplot(T3_Soil, aes(x=s_m_5)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_20 <- ggplot(T3_Soil, aes(x=s_m_20)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_50 <- ggplot(T3_Soil, aes(x=s_m_50)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_90 <- ggplot(T3_Soil, aes(x=s_m_90)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_130 <- ggplot(T3_Soil, aes(x=s_m_130)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+s_m_190 <- ggplot(T3_Soil, aes(x=s_m_190)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")
+
+ggarrange(T_g_5,T_g_20,T_g_50,T_g_90,T_g_130,T_g_190,s_m_5,s_m_20,s_m_50,s_m_90,s_m_130,s_m_190, ncol=2, nrow=2)
+summary(T3_Soil)
+
+```
+
+```{r}
+
+T4_Soil <- read.table('rc.tg_.dc_.jd-jdt2_stm.txt', header = TRUE, sep = ",")
+T4_Soil <- subset(T4_Soil, select = -c(Date_time))
+head(T4_Soil)
+summary(T4_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T4_Soil)[ apply(T4_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T4_Soil==-9999)
+
+# replace -9999 with Na's
+T4_Soil <- na_if(T4_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T4_Soil)[ apply(T4_Soil, 2, anyNA) ]
+list_na
+
+```
+
+```{r}
+
+T5_Soil <- read.table('rc.tg_.dc_.jd-jdt2b_stm.txt', header = TRUE, sep = ",")
+T5_Soil <- subset(T5_Soil, select = -c(Date_time))
+head(T5_Soil)
+summary(T5_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T5_Soil)[ apply(T5_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T5_Soil==-9999)
+
+# replace -9999 with Na's
+T5_Soil <- na_if(T5_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T5_Soil)[ apply(T5_Soil, 2, anyNA) ]
+list_na
+
+```
+
+```{r}
+
+T6_Soil <- read.table('rc.tg_.dc_.jd-jdt3_stm.txt', header = TRUE, sep = ",")
+T6_Soil <- subset(T6_Soil, select = -c(Date_time))
+head(T6_Soil)
+summary(T6_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T6_Soil)[ apply(T6_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T6_Soil==-9999)
+
+# replace -9999 with Na's
+T6_Soil <- na_if(T6_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T6_Soil)[ apply(T6_Soil, 2, anyNA) ]
+list_na
+
+```
+
+```{r}
+
+T7_Soil <- read.table('rc.tg_.dc_.jd-jdt3b_stm.txt', header = TRUE, sep = ",")
+T7_Soil <- subset(T7_Soil, select = -c(Date_time))
+head(T7_Soil)
+summary(T7_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T7_Soil)[ apply(T7_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T7_Soil==-9999)
+
+# replace -9999 with Na's
+T7_Soil <- na_if(T7_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T7_Soil)[ apply(T7_Soil, 2, anyNA) ]
+list_na
+```
+
+```{r}
+T8_Soil <- read.table('rc.tg_.dc_.jd-jdt4_stm.txt', header = TRUE, sep = ",")
+T8_Soil <- subset(T8_Soil, select = -c(Date_time))
+head(T8_Soil)
+summary(T8_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T8_Soil)[ apply(T8_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T8_Soil==-9999)
+
+# replace -9999 with Na's
+T8_Soil <- na_if(T8_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T8_Soil)[ apply(T8_Soil, 2, anyNA) ]
+list_na
+
+```
+
+```{r}
+T9_Soil <- read.table('rc.tg_.dc_.jd-jdt4b_stm.txt', header = TRUE, sep = ",")
+T9_Soil <- subset(T9_Soil, select = -c(Date_time))
+colnames(T9_Soil)[c(9)] <- c("T_g_35")
+head(T9_Soil)
+summary(T9_Soil)
+
+#check if NA's Exist
+list_na <- colnames(T9_Soil)[ apply(T9_Soil, 2, anyNA) ]
+list_na
+
+#check If missing values -9999 exist
+any(T9_Soil==-9999)
+
+# replace -9999 with Na's
+T9_Soil <- na_if(T9_Soil, -9999)
+
+#check if NA's Exist
+list_na <- colnames(T9_Soil)[ apply(T9_Soil, 2, anyNA) ]
+list_na
+
+```
+
+
+```{r}
+# ==================== Handling missing values =============================
+#install.packages('tidyr')
+#remove.packages('tidyr')
+library(dplyr)
+library(tidyr)
+
+#replace NA values in all numeric columns with their respective medians
+
+T1_Soil <- T1_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T2_Soil <- T2_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T3_Soil <- T3_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T4_Soil <- T4_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T5_Soil <- T5_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T6_Soil <- T6_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T7_Soil <- T7_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T8_Soil <- T8_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+T9_Soil <- T9_Soil %>% mutate(across(where(is.numeric), ~replace_na(., median(., na.rm=TRUE))))
+
+# use identical(newT1, T1) to check if two diff data frames are same or not
+```
+
+
+```{r}
+#Create a subset dataset using the grouping by featuers
+mergeData = T1_Soil
+mergeData_Sub = subset(mergeData, select = c("WY","Year","Month","Day","Hour","Minute"))
+summary(mergeData_Sub)
+
+```
+We will be going to handle/merge each field manually for all the 9 sites
+
+```{r}
+# =============== T_g_5, s_m_5 Available in all sites ===============
+
+mergeData_Sub['T_g_5']  =  (T1_Soil['T_g_5'] + T2_Soil['T_g_5'] + T3_Soil['T_g_5'] + T4_Soil['T_g_5'] + T5_Soil['T_g_5'] + T6_Soil['T_g_5'] + T7_Soil['T_g_5'] + T8_Soil['T_g_5'] + T9_Soil['T_g_5'] ) / 9
+mergeData_Sub['s_m_5']  =  (T1_Soil['s_m_5'] + T2_Soil['s_m_5'] + T3_Soil['s_m_5'] + T4_Soil['s_m_5'] + T5_Soil['s_m_5'] + T6_Soil['s_m_5'] + T7_Soil['s_m_5'] + T8_Soil['s_m_5'] + T9_Soil['s_m_5'] ) / 9
+```
+
+```{r}
+# =============== T_g_20, s_m_20 Available in all sites ===============
+
+mergeData_Sub['T_g_20']  =  (T1_Soil['T_g_20'] + T2_Soil['T_g_20'] + T3_Soil['T_g_20'] + T4_Soil['T_g_20'] + T5_Soil['T_g_20'] + T6_Soil['T_g_20'] + T7_Soil['T_g_20'] + T8_Soil['T_g_20'] + T9_Soil['T_g_20'] ) / 9
+mergeData_Sub['s_m_20']  =  (T1_Soil['s_m_20'] + T2_Soil['s_m_20'] + T3_Soil['s_m_20'] + T4_Soil['s_m_20'] + T5_Soil['s_m_20'] + T6_Soil['s_m_20'] + T7_Soil['s_m_20'] + T8_Soil['s_m_20'] + T9_Soil['s_m_20'] ) / 9
+```
+
+```{r}
+# =============== T_g_35, s_m_35 Available in T2_Soil, T5_Soil, T7_Soil, T9_Soil sites ===============
+
+mergeData_Sub['T_g_35']  =  ( T2_Soil['T_g_35'] + T5_Soil['T_g_35'] + T7_Soil['T_g_35'] + T9_Soil['T_g_35'] ) / 4
+mergeData_Sub['s_m_35']  =  ( T2_Soil['s_m_35'] + T5_Soil['s_m_35'] + T7_Soil['s_m_35'] + T9_Soil['s_m_35'] ) / 4
+```
+
+```{r}
+# =============== T_g_50, s_m_50 Available in all sites ===============
+
+mergeData_Sub['T_g_50']  =  (T1_Soil['T_g_50'] + T2_Soil['T_g_50'] + T3_Soil['T_g_50'] + T4_Soil['T_g_50'] + T5_Soil['T_g_50'] + T6_Soil['T_g_50'] + T7_Soil['T_g_50'] + T8_Soil['T_g_50'] + T9_Soil['T_g_50'] ) / 9
+mergeData_Sub['s_m_50']  =  (T1_Soil['s_m_50'] + T2_Soil['s_m_50'] + T3_Soil['s_m_50'] + T4_Soil['s_m_50'] + T5_Soil['s_m_50'] + T6_Soil['s_m_50'] + T7_Soil['s_m_50'] + T8_Soil['s_m_50'] + T9_Soil['s_m_50'] ) / 9
+```
+
+```{r}
+# =============== T_g_75, s_m_75 Available in T1_Soil, T4_Soil, T5_Soil, T6_Soil, T8_Soil sites ===============
+
+mergeData_Sub['T_g_75']  =  ( T1_Soil['T_g_75'] + T4_Soil['T_g_75'] + T5_Soil['T_g_75'] + T6_Soil['T_g_75'] + T8_Soil['T_g_75'] ) / 5
+mergeData_Sub['s_m_75']  =  ( T1_Soil['s_m_75'] + T4_Soil['s_m_75'] + T5_Soil['s_m_75'] + T6_Soil['s_m_75'] + T8_Soil['s_m_75'] ) / 5
+```
+
+```{r}
+# =============== T_g_90, s_m_90 Available in T1_Soil, T3_Soil sites ===============
+
+mergeData_Sub['T_g_90']  =  ( T1_Soil['T_g_90'] + T3_Soil['T_g_90'] ) / 2
+mergeData_Sub['s_m_90']  =  ( T1_Soil['s_m_90'] + T3_Soil['s_m_90'] ) / 2
+```
+
+```{r}
+# =============== T_g_100, s_m_100 Available in T4_Soil, T6_Soil, T8_Soil sites ===============
+
+mergeData_Sub['T_g_100']  =  ( T4_Soil['T_g_100'] + T6_Soil['T_g_100'] + T8_Soil['T_g_100'] ) / 3
+mergeData_Sub['s_m_100']  =  ( T4_Soil['s_m_100'] + T6_Soil['s_m_100'] + T8_Soil['s_m_100'] ) / 3
+```
+
+
+```{r}
+# =============== T_g_130, s_m_130 Available in T3_Soil site ===============
+
+mergeData_Sub['T_g_130']  =  ( T3_Soil['T_g_130'] )
+mergeData_Sub['s_m_130']  =  ( T3_Soil['s_m_130'] )
+```
+
+```{r}
+# =============== T_g_190, s_m_190 Available in T3_Soil site ===============
+
+mergeData_Sub['T_g_190']  =  ( T3_Soil['T_g_190'] )
+mergeData_Sub['s_m_190']  =  ( T3_Soil['s_m_190'] )
+```
+
+
+```{r}
+Final_Soil = mergeData_Sub
+summary(Final_Soil)
+```
+#download the SnowDepth datasets which is merged into excel for further analysis.
+```{r}
+library("writexl")
+write_xlsx(Final_Soil,"Soil_merged.xlsx")
+```
+
+```{r}
+#Merging df weather Snow Soil Precipitation into 1
+weather_Snow_Soil_PPt_merged <-weather_data_merged %>%
+    left_join(Snow_depth, by=c("WY","Year","Month","Day","Hour","Minute")) %>%
+    left_join(Final_Soil, by=c("WY","Year","Month","Day","Hour","Minute"))  %>%
+    left_join(Precipitation_merged, by=c("WY","Year","Month","Day","Hour","Minute"))
+head(weather_Snow_Soil_PPt_merged)
+```
+```{r}
+library("writexl")
+write_xlsx(weather_Snow_Soil_PPt_merged,"All_4_merged.xlsx")
+```
+
+```{r}
+#check if NA's Exist
+list_na <- colnames(weather_Snow_Soil_PPt_merged)[ apply(weather_Snow_Soil_PPt_merged, 2, anyNA) ]
+list_na
+
+#Replace all NA's with 0 since those stations had not begain recording at that time/year.
+weather_Snow_Soil_PPt_merged <- replace(weather_Snow_Soil_PPt_merged, is.na(weather_Snow_Soil_PPt_merged), 0)
+
+#check if NA's Exist
+list_na <- colnames(weather_Snow_Soil_PPt_merged)[ apply(weather_Snow_Soil_PPt_merged, 2, anyNA) ]
+list_na
+
+#Remove Minute feature as it only contains value 0
+weather_Snow_Soil_PPt_merged <- subset(weather_Snow_Soil_PPt_merged, select = -c(Minute))
+
+
+summary(weather_Snow_Soil_PPt_merged)
+```
+
+```{r}
+library("writexl")
+write_xlsx(weather_Snow_Soil_PPt_merged,"All_4_merged_cleaned.xlsx")
+```
+
+```{r}
+#install.packages("tabplot", dependencies = TRUE)
+require(ggplot2)
+#install.packages('tabplot')
+#library(tabplot)
+```
+
+```{r}
+#Making barplot to see how many years each station recorded data for
+
+locations = c('125b','125b','125b','125b','125b','125b','125b','125b','125b','125b','125b','125','125','125','125','125','125','125','125','125','125','125','Jdt1','Jdt1','Jdt1','Jdt1','Jdt1','Jdt1','Jdt1','Jdt1','Jdt1','Jdt2b','Jdt2b','Jdt2b','Jdt2b','Jdt2','Jdt2','Jdt2','Jdt2','Jdt2','Jdt2','Jdt2','Jdt2','Jdt2','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3','Jdt3b','Jdt3b','Jdt3b','Jdt3b','Jdt4b','Jdt4b','Jdt4b','Jdt4b','Jdt4','Jdt4','Jdt4','Jdt4','Jdt4','Jdt4','Jdt4','Jdt4','Jdt4','Jdt5','Jdt5','Jdt5','Jdt5','Jdt5','Jdt5','Jdt5','Jdt5','Jdt5','124b','124b','124b','124b','124b','124b','124b','124b','124','124','124','124','124','124','124','124','124','124','124')
+Sites <- data.frame(locations)
+x <- table(Sites$locations)
+barplot(x, main="Sites Availibility (years)", xlab="Sites", ylab="Years", las=2)
+```
+
+#Relationship Between Numerical Variables
+```{r}
+#Correlation Matrix 
+#(take all features except Minute because since it's only value is 0, it shows NA in correlation with other variables which will disrupt correlation plot later)
+
+#Ignore standard deviation warning using suppressWarnings function
+suppressWarnings({corr <- round(cor(weather_Snow_Soil_PPt_merged), 1)})
+corr
+
+```
+
+```{r}
+correlation <- data.frame(corr)
+correlation <- as.data.frame(correlation)
+write_xlsx(correlation,"correlation.xlsx")
+```
+
+```{r}
+#install.packages('corrgram')
+library(corrgram)
+
+#Visualizing using a Correlogram
+corrgram(corr)
+```
+#Before handling outliers:
+
+#########Multiple Linear Regression on the combined with correlation dataset#####################################
+
+```{r}
+#Fitting multiple linear regression model using snow depth as response
+lm.fits <- lm(z_s ~. , data = weather_Snow_Soil_PPt_merged)
+summary(lm.fits)
+```
+
+
+```{r}
+#Confidence Interval
+confint(lm.fits)
+```
+
+```{r}
+
+#Creating our own function for MSE and RMSE Calculations
+MSE <- mean(lm.fits$residuals^2)
+RMSE <- sqrt(MSE)
+
+cat("Mean Square Error: ", MSE)
+cat(", Root Mean Square Error: ", RMSE)
+
+#Compute Error Rate using RSE - Error Rate is RSE divided by mean of response variable
+error <- sigma(lm.fits)/mean(weather_Snow_Soil_PPt_merged$z_s)
+cat("\nError rate: ", error)
+
+```
+
+#########Ridge Regression on the combined with correlation dataset#####################################
+```{r}
+library(glmnet)
+library(mgcv)
+library(visreg)
+
+#Ridge
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged )[, -1]
+y <- weather_Snow_Soil_PPt_merged$z_s
+
+model <- glmnet(x, y, alpha = 0)
+
+#find optimal lambda value
+ridge.mod <- cv.glmnet(x, y, alpha = 0)
+plot(ridge.mod)
+
+```
+
+
+```{r}
+min_lambda_ridge <- ridge.mod$lambda.min
+cat("Minimum value of Lambda for ridge: ", min_lambda_ridge,"\n")
+
+ridge.mod2 <- glmnet(x, y, alpha = 0, lambda = min_lambda_ridge)
+
+coef(ridge.mod2)
+
+#produce Ridge trace plot
+plot(model, xvar = "lambda")
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_ridge <- predict(ridge.mod2, s = min_lambda_ridge, newx=x)
+
+mse_ridge <- mean((y - y_pred_ridge)^2)
+rmse_ridge <- sqrt(mse_ridge)
+RSS_ridge <- sum((y - y_pred_ridge)^2)
+TSS_ridge <- (sum((y - mean(y))^2))
+rsquared_ridge <- 1-(RSS_ridge/TSS_ridge)
+
+cat("Mean Square Error Ridge: ", mse_ridge)
+cat("\nRoot Mean Square Error Ridge: ", rmse_ridge)
+cat("\nR^2 Ridge: ", rsquared_ridge)
+```
+
+#########Lasso Regression on the combined with correlation dataset#####################################
+```{r}
+
+#Lasso
+
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged )[, -1]
+y <- weather_Snow_Soil_PPt_merged$z_s
+
+lasso.mod <- cv.glmnet(x, y, alpha = 1)
+#lasso.mod <- cv.glmnet(x, y, alpha = 1)
+
+```
+
+
+```{r}
+min_lambda_lasso <- lasso.mod$lambda.min
+cat("Minimum value of Lambda: ", min_lambda_lasso,"\n")
+
+#produce plot of test MSE by lambda value
+plot(lasso.mod)
+
+lasso.mod2 <- glmnet(x, y, alpha = 1, lambda = min_lambda_lasso)
+
+coef(lasso.mod2)
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_lasso <- predict(lasso.mod2, s = min_lambda_lasso, newx=x)
+
+mse_lasso <- mean((y - y_pred_lasso)^2)
+rmse_lasso <- sqrt(mse_lasso)
+RSS_lasso <- sum((y - y_pred_lasso)^2)
+TSS_lasso <- (sum((y - mean(y))^2))
+rsquared_lasso <- 1-(RSS_lasso/TSS_lasso)
+
+cat("Mean Square Error Lasso: ", mse_lasso)
+cat("\n Root Mean Square Error Lasso: ", rmse_lasso)
+cat("\n R^2 Lasso: ", rsquared_lasso)
+
+```
+######################Handling correlation$data############################################
+
+```{r}
+#Handling the correlation by merging all the T_g features into one and all s_m features into one
+weather_Snow_Soil_PPt_merged_cor<-weather_Snow_Soil_PPt_merged
+weather_Snow_Soil_PPt_merged_cor$T_g <- rowMeans(weather_Snow_Soil_PPt_merged_cor[ , c("T_g_5","T_g_20","T_g_35","T_g_50","T_g_75","T_g_90","T_g_100","T_g_130","T_g_190")])
+
+weather_Snow_Soil_PPt_merged_cor <- subset(weather_Snow_Soil_PPt_merged_cor, select = -c(T_g_5,T_g_20,T_g_35,T_g_50,T_g_75,T_g_90,T_g_100,T_g_130,T_g_190))
+
+weather_Snow_Soil_PPt_merged_cor$s_m <- rowMeans(weather_Snow_Soil_PPt_merged_cor[ , c("s_m_5","s_m_20","s_m_35","s_m_50","s_m_75","s_m_90","s_m_100","s_m_130","s_m_190")])
+
+weather_Snow_Soil_PPt_merged_cor <- subset(weather_Snow_Soil_PPt_merged_cor, select = -c(s_m_5,s_m_20,s_m_35,s_m_50,s_m_75,s_m_90,s_m_100,s_m_130,s_m_190))
+
+summary(weather_Snow_Soil_PPt_merged_cor)
+head(weather_Snow_Soil_PPt_merged_cor)
+
+```
+```{r}
+#Correlation Matrix 
+#(take all features except Minute because since it's only value is 0, it shows NA in correlation with other variables which will disrupt correlation plot later)
+
+#Ignore standard deviation warning using suppressWarnings function
+suppressWarnings({corr <- round(cor(weather_Snow_Soil_PPt_merged_cor), 1)})
+corr
+
+```
+
+```{r}
+#install.packages('corrgram')
+library(corrgram)
+
+#Visualizing using a Correlogram
+corrgram(corr)
+```
+#########Multiple Linear Regression on the combined cleaned correlation handled dataset#####################################
+
+```{r}
+lm.fits1 <- lm(z_s ~. , data = weather_Snow_Soil_PPt_merged_cor)
+summary(lm.fits1)
+```
+
+
+```{r}
+#Confidence Interval
+confint(lm.fits1)
+```
+
+```{r}
+
+#Creating our own function for MSE and RMSE Calculations
+MSE1 <- mean(lm.fits1$residuals^2)
+RMSE1 <- sqrt(MSE1)
+
+cat("Mean Square Error: ", MSE1)
+cat(", Root Mean Square Error: ", RMSE1)
+
+#Compute Error Rate using RSE - Error Rate is RSE divided by mean of response variable
+error1 <- sigma(lm.fits1)/mean(weather_Snow_Soil_PPt_merged$z_s)
+cat("\nError rate: ", error1)
+
+```
+
+#########Ridge Regression on the combined cleaned correlation handled dataset#####################################
+```{r}
+library(glmnet)
+library(mgcv)
+library(visreg)
+
+#Ridge
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged_cor )[, -1]
+y <- weather_Snow_Soil_PPt_merged_cor$z_s
+
+model <- glmnet(x, y, alpha = 0)
+
+#find optimal lambda value
+ridge.mod <- cv.glmnet(x, y, alpha = 0)
+plot(ridge.mod)
+
+```
+
+
+```{r}
+
+
+min_lambda_ridge <- ridge.mod$lambda.min
+cat("Minimum value of Lambda for ridge: ", min_lambda_ridge,"\n")
+
+ridge.mod2 <- glmnet(x, y, alpha = 0, lambda = min_lambda_ridge)
+
+coef(ridge.mod2)
+
+#produce Ridge trace plot
+plot(model, xvar = "lambda")
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_ridge <- predict(ridge.mod2, s = min_lambda_ridge, newx=x)
+
+mse_ridge <- mean((y - y_pred_ridge)^2)
+rmse_ridge <- sqrt(mse_ridge)
+RSS_ridge <- sum((y - y_pred_ridge)^2)
+TSS_ridge <- (sum((y - mean(y))^2))
+rsquared_ridge <- 1-(RSS_ridge/TSS_ridge)
+
+cat("Mean Square Error Ridge: ", mse_ridge)
+cat("\nRoot Mean Square Error Ridge: ", rmse_ridge)
+cat("\nR^2 Ridge: ", rsquared_ridge)
+```
+
+#########Lasso Regression on the combined cleaned correlation handled dataset#####################################
+```{r}
+
+#Lasso
+
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged_cor )[, -1]
+y <- weather_Snow_Soil_PPt_merged_cor$z_s
+
+lasso.mod <- cv.glmnet(x, y, alpha = 1)
+#lasso.mod <- cv.glmnet(x, y, alpha = 1)
+
+```
+
+
+```{r}
+min_lambda_lasso <- lasso.mod$lambda.min
+cat("Minimum value of Lambda: ", min_lambda_lasso,"\n")
+
+#produce plot of test MSE by lambda value
+plot(lasso.mod)
+
+lasso.mod2 <- glmnet(x, y, alpha = 1, lambda = min_lambda_lasso)
+
+coef(lasso.mod2)
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_lasso <- predict(lasso.mod2, s = min_lambda_lasso, newx=x)
+
+mse_lasso <- mean((y - y_pred_lasso)^2)
+rmse_lasso <- sqrt(mse_lasso)
+RSS_lasso <- sum((y - y_pred_lasso)^2)
+TSS_lasso <- (sum((y - mean(y))^2))
+rsquared_lasso <- 1-(RSS_lasso/TSS_lasso)
+
+cat("Mean Square Error Lasso: ", mse_lasso)
+cat("\n Root Mean Square Error Lasso: ", rmse_lasso)
+cat("\n R^2 Lasso: ", rsquared_lasso)
+
+```
+
+
+#Checking for outliers using Tukey method, if exists Handling the outliers via winsorizing
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_a, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_a, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+#Locate and visualize the outlier on the boxplot:
+outliers <- which(weather_Snow_Soil_PPt_merged$T_a < lower | weather_Snow_Soil_PPt_merged$T_a > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_a, main = "Boxplot of T_a with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_a[outliers], col = "red", pch = 19)
+
+#Using winsorizing technique to handle the extreme outlier values
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_a <- Winsorize(weather_Snow_Soil_PPt_merged$T_a, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_a, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$RH, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$RH, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$RH < lower | weather_Snow_Soil_PPt_merged$RH > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$RH, main = "Boxplot of RH with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$RH[outliers], col = "red", pch = 19)
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$e_a, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$e_a, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$e_a < lower | weather_Snow_Soil_PPt_merged$e_a > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$e_a, main = "Boxplot of e_a with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$e_a[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$e_a <- Winsorize(weather_Snow_Soil_PPt_merged$e_a, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$e_a, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_d, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_d, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_d < lower | weather_Snow_Soil_PPt_merged$T_d > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_d, main = "Boxplot of T_d with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_d[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_d <- Winsorize(weather_Snow_Soil_PPt_merged$T_d, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_d, main = "Winsorized Data Boxplot")
+
+
+```
+
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$S_i, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$S_i, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$S_i < lower | weather_Snow_Soil_PPt_merged$S_i > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$S_i, main = "Boxplot of S_i with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$S_i[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$S_i <- Winsorize(weather_Snow_Soil_PPt_merged$S_i, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$S_i, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$w_s, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$w_s, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$w_s < lower | weather_Snow_Soil_PPt_merged$w_s > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$w_s, main = "Boxplot of w_s with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$w_s[outliers], col = "red", pch = 19)
+
+#install.packages('DescTools')
+#install.packages('lmom')
+library(DescTools)
+weather_Snow_Soil_PPt_merged$w_s <- Winsorize(weather_Snow_Soil_PPt_merged$w_s, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$w_s, main = "Winsorized Data Boxplot")
+
+```
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$w_d, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$w_d, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$w_d < lower | weather_Snow_Soil_PPt_merged$w_d > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$w_d, main = "Boxplot of w_d with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$w_d[outliers], col = "red", pch = 19)
+
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$w_d <- Winsorize(weather_Snow_Soil_PPt_merged$w_d, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$w_d, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_5, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_5, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_5 < lower | weather_Snow_Soil_PPt_merged$T_g_5 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_5, main = "Boxplot of T_g_5 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_5[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_5 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_5, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_5, main = "Winsorized Data Boxplot")
+```
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_5, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_5, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_5 < lower | weather_Snow_Soil_PPt_merged$s_m_5 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_5, main = "Boxplot of s_m_5 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_5[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$s_m_5 <- Winsorize(weather_Snow_Soil_PPt_merged$s_m_5, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_5, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_20, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_20, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_20 < lower | weather_Snow_Soil_PPt_merged$T_g_20 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_20, main = "Boxplot of T_g_20 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_20[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_20 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_20, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_20, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_20, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_20, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_20 < lower | weather_Snow_Soil_PPt_merged$s_m_20 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_20, main = "Boxplot of s_m_20 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_20[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$s_m_20 <- Winsorize(weather_Snow_Soil_PPt_merged$s_m_20, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_20, main = "Winsorized Data Boxplot")
+
+```
+
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_35, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_35, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_35 < lower | weather_Snow_Soil_PPt_merged$T_g_35 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_35, main = "Boxplot of T_g_35 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_35[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_35 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_35, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_35, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_35, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_35, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_35 < lower | weather_Snow_Soil_PPt_merged$s_m_35 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_35, main = "Boxplot of s_m_35 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_35[outliers], col = "red", pch = 19)
+
+#No outliers
+```
+
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_50, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_50, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_50 < lower | weather_Snow_Soil_PPt_merged$T_g_50 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_50, main = "Boxplot of T_g_50 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_50[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_50 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_50, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_50, main = "Winsorized Data Boxplot")
+
+```
+
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_50, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_50, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_50 < lower | weather_Snow_Soil_PPt_merged$s_m_50 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_50, main = "Boxplot of s_m_50 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_50[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_75, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_75, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_75 < lower | weather_Snow_Soil_PPt_merged$T_g_75 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_75, main = "Boxplot of T_g_75 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_75[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_75 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_75, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_75, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_75, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_75, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_75 < lower | weather_Snow_Soil_PPt_merged$s_m_75 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_75, main = "Boxplot of s_m_75 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_75[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_90, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_90, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_90 < lower | weather_Snow_Soil_PPt_merged$T_g_90 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_90, main = "Boxplot of T_g_90 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_90[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_90 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_90, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_90, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_90, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_90, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_90 < lower | weather_Snow_Soil_PPt_merged$s_m_90 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_90, main = "Boxplot of s_m_90 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_90[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_100, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_100, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_100 < lower | weather_Snow_Soil_PPt_merged$T_g_100 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_100, main = "Boxplot of T_g_100 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_100[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_100 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_100, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_100, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_100, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_100, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_100 < lower | weather_Snow_Soil_PPt_merged$s_m_100 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_100, main = "Boxplot of s_m_100 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_100[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$s_m_100 <- Winsorize(weather_Snow_Soil_PPt_merged$s_m_100, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_100, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_130, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_130, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_130 < lower | weather_Snow_Soil_PPt_merged$T_g_130 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_130, main = "Boxplot of T_g_130 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_130[outliers], col = "red", pch = 19)
+
+library(DescTools)
+weather_Snow_Soil_PPt_merged$T_g_130 <- Winsorize(weather_Snow_Soil_PPt_merged$T_g_130, probs = c(0.05, 0.95))
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_130, main = "Winsorized Data Boxplot")
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_130, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_130, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_130 < lower | weather_Snow_Soil_PPt_merged$s_m_130 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_130, main = "Boxplot of s_m_130 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_130[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$T_g_190, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$T_g_190, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$T_g_190 < lower | weather_Snow_Soil_PPt_merged$T_g_190 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$T_g_190, main = "Boxplot of T_g_190 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$T_g_190[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$s_m_190, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$s_m_190, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$s_m_190 < lower | weather_Snow_Soil_PPt_merged$s_m_190 > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$s_m_190, main = "Boxplot of s_m_190 with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$s_m_190[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$ppt_a, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$ppt_a, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$ppt_a < lower | weather_Snow_Soil_PPt_merged$ppt_a > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$ppt_a, main = "Boxplot of ppt_a with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$ppt_a[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+
+```{r}
+Q1 <- quantile(weather_Snow_Soil_PPt_merged$perc_snow, 0.25)
+Q3 <- quantile(weather_Snow_Soil_PPt_merged$perc_snow, 0.75)
+IQR <- Q3 - Q1
+lower <- Q1 - 1.5 * IQR
+upper <- Q3 + 1.5 * IQR
+
+outliers <- which(weather_Snow_Soil_PPt_merged$perc_snow < lower | weather_Snow_Soil_PPt_merged$perc_snow > upper)
+
+boxplot(weather_Snow_Soil_PPt_merged$perc_snow, main = "Boxplot of perc_snow with Tukey method")
+points(outliers, weather_Snow_Soil_PPt_merged$perc_snow[outliers], col = "red", pch = 19)
+
+#No Outliers
+
+```
+#After handling outliers
+
+#########Multiple Linear Regression on the combined with correlation dataset without outliers#####################################
+
+```{r}
+lm.fits2 <- lm(z_s ~. , data = weather_Snow_Soil_PPt_merged)
+summary(lm.fits2)
+```
+
+```{r}
+#Confidence Interval
+confint(lm.fits2)
+```
+
+```{r}
+
+#Creating our own function for MSE and RMSE Calculations
+MSE2 <- mean(lm.fits2$residuals^2)
+RMSE2 <- sqrt(MSE2)
+
+cat("Mean Square Error: ", MSE2)
+cat(", Root Mean Square Error: ", RMSE2)
+
+#Compute Error Rate using RSE - Error Rate is RSE divided by mean of response variable
+error2 <- sigma(lm.fits2)/mean(weather_Snow_Soil_PPt_merged$z_s)
+cat("\nError rate: ", error2)
+
+```
+
+#########Ridge Regression on the combined with correlation dataset without outliers#####################################
+```{r}
+library(glmnet)
+library(mgcv)
+library(visreg)
+
+#Ridge
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged )[, -1]
+y <- weather_Snow_Soil_PPt_merged$z_s
+
+model <- glmnet(x, y, alpha = 0)
+
+#find optimal lambda value
+ridge.mod <- cv.glmnet(x, y, alpha = 0)
+plot(ridge.mod)
+
+```
+
+
+```{r}
+min_lambda_ridge <- ridge.mod$lambda.min
+cat("Minimum value of Lambda for ridge: ", min_lambda_ridge,"\n")
+
+ridge.mod2 <- glmnet(x, y, alpha = 0, lambda = min_lambda_ridge)
+
+coef(ridge.mod2)
+
+#produce Ridge trace plot
+plot(model, xvar = "lambda")
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_ridge <- predict(ridge.mod2, s = min_lambda_ridge, newx=x)
+
+mse_ridge <- mean((y - y_pred_ridge)^2)
+rmse_ridge <- sqrt(mse_ridge)
+RSS_ridge <- sum((y - y_pred_ridge)^2)
+TSS_ridge <- (sum((y - mean(y))^2))
+rsquared_ridge <- 1-(RSS_ridge/TSS_ridge)
+
+cat("Mean Square Error Ridge: ", mse_ridge)
+cat("\nRoot Mean Square Error Ridge: ", rmse_ridge)
+cat("\nR^2 Ridge: ", rsquared_ridge)
+```
+
+#########Lasso Regression on the combined with correlation dataset without outliers#####################################
+```{r}
+
+#Lasso
+
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=weather_Snow_Soil_PPt_merged )[, -1]
+y <- weather_Snow_Soil_PPt_merged$z_s
+
+lasso.mod <- cv.glmnet(x, y, alpha = 1)
+#lasso.mod <- cv.glmnet(x, y, alpha = 1)
+
+```
+
+
+```{r}
+min_lambda_lasso <- lasso.mod$lambda.min
+cat("Minimum value of Lambda: ", min_lambda_lasso,"\n")
+
+#produce plot of test MSE by lambda value
+plot(lasso.mod)
+
+lasso.mod2 <- glmnet(x, y, alpha = 1, lambda = min_lambda_lasso)
+
+coef(lasso.mod2)
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_lasso <- predict(lasso.mod2, s = min_lambda_lasso, newx=x)
+
+mse_lasso <- mean((y - y_pred_lasso)^2)
+rmse_lasso <- sqrt(mse_lasso)
+RSS_lasso <- sum((y - y_pred_lasso)^2)
+TSS_lasso <- (sum((y - mean(y))^2))
+rsquared_lasso <- 1-(RSS_lasso/TSS_lasso)
+
+cat("Mean Square Error Lasso: ", mse_lasso)
+cat("\n Root Mean Square Error Lasso: ", rmse_lasso)
+cat("\n R^2 Lasso: ", rsquared_lasso)
+
+```
+
+
+############################PCA on the combined with correlation dataset without outliers for dimensionality reduction and reducing correlation###################
+```{r}
+library("FactoMineR")
+library("factoextra")
+```
+
+```{r}
+PCA_DATA = (weather_Snow_Soil_PPt_merged)
+#PCA_DATA = subset(PCA_DATA, select = -c(WY, Year, Month, Day, Hour, Minute))
+summary(PCA_DATA)
+
+```
+
+PCA: Help to explain the variability of the dataset using fewer variables.
+
+The goals of PCA are to:
+
+1. Gain an overall structure of the large dimension data,
+2. determine key numerical variables based on their contribution to maximum variances in the dataset,
+3. compress the size of the data set by keeping only the key variables and removing redundant variables, and
+4. ﬁnd out the correlation among key variables and construct new components for further analysis.
+
+Note that, the PCA method is particularly useful when the variables within the data set are highly correlated and redundant.
+
+```{r}
+#Perform PCA and do biplot visualization
+PCA_DATA_1 = PCA(PCA_DATA, scale.unit = TRUE, graph = TRUE)
+```
+
+1. Positively correlated variables are grouped together.
+2. Negatively correlated variables are located on opposite sides of the plot origin
+3. The distance between variables and the origin measures the quality of the variables on the factor map. Variables that are away from the origin are well represented on the factor map.
+
+Variables that are closed to circumference (like T_g_20, s_m_5 ) manifest the maximum representation of the principal components. However, variables like RH, ppt_a show week representation of the principal components.
+
+```{r}
+#Get PCA variables
+var_PCA = get_pca_var(PCA_DATA_1)
+var_PCA
+```
+
+```{r}
+#Looking at the variation contribution of each feature
+PCA1_Contributions = (var_PCA$contrib)
+PCA1_Contributions = subset(PCA1_Contributions, select = c(Dim.1)) #Keeping only Dim.1
+BB = ordered(PCA1_Contributions)
+PCA1_Contributions
+```
+
+
+
+```{r}
+#Visualizing the variation contributions
+fviz_contrib(PCA_DATA_1, choice = "var", axes = 1, top = 22) #Contributions of variables to PC1 : top = top 22 contributors
+```
+```{r}
+fviz_contrib(PCA_DATA_1, choice = "var", axes = 2, top = 10) #Contributions of variables to PC2 : top = top 22 contributors
+```
+
+```{r}
+pca <- prcomp(PCA_DATA)
+
+# Get the loadings (correlations between variables and PCs)
+loadings <- pca$rotation
+
+# Get the top 10 contributors for each PC
+top_20 <- apply(loadings, 2, function(x) names(sort(abs(x), decreasing = TRUE)[1:20]))
+
+# Print the names of the top 10 contributors for each PC
+for (i in 1:1) {
+  #cat(sprintf("Top 10 contributors for PC%d:\n", i))
+  AA = (top_20[, i])
+}
+
+LL = noquote(AA)
+LL
+#PP = toString(ZZ)
+PCA_weather_Snow_Soil_PPt_merged = subset(PCA_DATA, select = c(e_a, S_i, w_d, T_a, T_d, z_s, T_g_5, T_g_20, T_g_35, T_g_50, T_g_75, T_g_100, T_g_90, T_g_130, T_g_190, Month, perc_snow, Hour, WY, Year))
+
+#Creating a sub-dataframe to perform MLR after using PCA components
+
+summary(PCA_weather_Snow_Soil_PPt_merged)
+```
+
+Performing MLR on PCA data
+
+```{r}
+PCA_MLR_ALL_Merged_data = PCA_weather_Snow_Soil_PPt_merged
+
+#plot(PCA_MLR_ALL_Merged_data) # the plot() gives a visual representation of the relation between the various columns in the dataset
+
+```
+
+```{r}
+#Observe new correlation
+cor(PCA_MLR_ALL_Merged_data) 
+```
+
+
+```{r}
+library("caTools")
+```
+
+
+#########Multiple linear regression on the combined with correlation dataset without outliers with PCA Dimensionality Reduction#####################################
+```{r}
+model_PCA_MLR_ALL_Merged_data <-lm(z_s ~., data = PCA_MLR_ALL_Merged_data)
+summary(model_PCA_MLR_ALL_Merged_data)
+```
+
+```{r}
+
+#Creating our own function for MSE and RMSE Calculations
+MSE3 <- mean(model_PCA_MLR_ALL_Merged_data$residuals^2)
+RMSE3 <- sqrt(MSE3)
+
+cat("Mean Square Error: ", MSE3)
+cat(", Root Mean Square Error: ", RMSE3)
+
+#Compute Error Rate using RSE - Error Rate is RSE divided by mean of response variable
+error3 <- sigma(model_PCA_MLR_ALL_Merged_data)/mean(PCA_MLR_ALL_Merged_data$z_s)
+cat("\nError rate: ", error3)
+
+```
+
+
+#########Ridge Regression on the combined with correlation dataset without outliers with PCA Dimensionality Reduction#####################################
+```{r}
+library(glmnet)
+library(mgcv)
+library(visreg)
+
+#Ridge
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=PCA_MLR_ALL_Merged_data )[, -1]
+y <- PCA_MLR_ALL_Merged_data$z_s
+
+model <- glmnet(x, y, alpha = 0)
+
+#find optimal lambda value
+ridge.mod <- cv.glmnet(x, y, alpha = 0)
+plot(ridge.mod)
+
+```
+
+
+```{r}
+min_lambda_ridge <- ridge.mod$lambda.min
+cat("Minimum value of Lambda for ridge: ", min_lambda_ridge,"\n")
+
+ridge.mod2 <- glmnet(x, y, alpha = 0, lambda = min_lambda_ridge)
+
+coef(ridge.mod2)
+
+#produce Ridge trace plot
+plot(model, xvar = "lambda")
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_ridge <- predict(ridge.mod2, s = min_lambda_ridge, newx=x)
+
+mse_ridge <- mean((y - y_pred_ridge)^2)
+rmse_ridge <- sqrt(mse_ridge)
+RSS_ridge <- sum((y - y_pred_ridge)^2)
+TSS_ridge <- (sum((y - mean(y))^2))
+rsquared_ridge <- 1-(RSS_ridge/TSS_ridge)
+
+cat("Mean Square Error Ridge: ", mse_ridge)
+cat("\nRoot Mean Square Error Ridge: ", rmse_ridge)
+cat("\nR^2 Ridge: ", rsquared_ridge)
+```
+
+#########Lasso Regression on the combined with correlation dataset without outliers with PCA Dimensionality Reduction#####################################
+```{r}
+
+#Lasso
+
+#pass x matrix and y vector:
+x <- model.matrix(z_s ~ ., data=PCA_MLR_ALL_Merged_data )[, -1]
+y <- PCA_MLR_ALL_Merged_data$z_s
+
+lasso.mod <- cv.glmnet(x, y, alpha = 1)
+#lasso.mod <- cv.glmnet(x, y, alpha = 1)
+
+```
+
+
+```{r}
+min_lambda_lasso <- lasso.mod$lambda.min
+cat("Minimum value of Lambda: ", min_lambda_lasso,"\n")
+
+#produce plot of test MSE by lambda value
+plot(lasso.mod)
+
+lasso.mod2 <- glmnet(x, y, alpha = 1, lambda = min_lambda_lasso)
+
+coef(lasso.mod2)
+```
+
+```{r}
+#use fitted best model to make predictions on train data
+
+y_pred_lasso <- predict(lasso.mod2, s = min_lambda_lasso, newx=x)
+
+mse_lasso <- mean((y - y_pred_lasso)^2)
+rmse_lasso <- sqrt(mse_lasso)
+RSS_lasso <- sum((y - y_pred_lasso)^2)
+TSS_lasso <- (sum((y - mean(y))^2))
+rsquared_lasso <- 1-(RSS_lasso/TSS_lasso)
+
+cat("Mean Square Error Lasso: ", mse_lasso)
+cat("\n Root Mean Square Error Lasso: ", rmse_lasso)
+cat("\n R^2 Lasso: ", rsquared_lasso)
+
+```
+
+```{r}
+#Bivariate visualization - Plotting snow depth as a function of each feature
+plot(z_s ~., data = PCA_MLR_ALL_Merged_data)
+#plot(perc_snow ~ e_a, data = data)
+abline(model_PCA_MLR_ALL_Merged_data)
+
+```
+```{r}
+#Plotting residuals vs fitted to view the non linear relationship
+par(mfrow = c(2, 2))
+plot(model_PCA_MLR_ALL_Merged_data)
+```
+It can be observed from the above graphs that the relationship between selected features are non-linear.
+
+```{r}
+#stat_smooth plot using ggplot to observe the relationships
+#We can also observe the relation with single / multiple features
+#ggplot(data, aes(x = e_a, y = z_s)) + geom_point() + 
+#stat_smooth()
+ggplot(PCA_MLR_ALL_Merged_data, aes(x = e_a + S_i + w_d + T_a + T_d + z_s + T_g_5 + T_g_20 + T_g_35 + T_g_50 + T_g_75 + T_g_100 + T_g_90 + T_g_130 + T_g_190 + Month + Hour + WY + Year, y = z_s)) + geom_point() + 
+stat_smooth()
+
+```
+In above graph it can be observed that plot fitt is doing fine be keeping the residuals low however it still need further optimization.
+
+
